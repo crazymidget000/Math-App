@@ -1,7 +1,7 @@
 # Math Quest
 
 A turn-based math battle game for kids aged 6–10. Django + Postgres + htmx.
-See [`plan.md`](plan.md) for the full build plan.
+See [`docs/plan.md`](docs/plan.md) for the full build plan.
 
 ## Local setup
 
@@ -55,10 +55,19 @@ comes from `.python-version`.
 
 ## Project layout
 
-- `mathquest/`: settings and URLs
-- `accounts/`: sign-up, `Player` profile, hero choice
-- `game/`: stages, monsters, battles (world map placeholder for now)
-- `tutor/`: AI tutor (Sprint 2+)
-- `abtest/`: A/B test page (S1-5)
-- `templates/`, `static/`: pages, Pico.css, htmx, and `css/theme.css` (all colors and fonts)
-- `tests/`: pytest tests
+```
+mathquest/      Django config: settings, URLs, WSGI entry point
+apps/           All feature code, one folder per feature
+  accounts/       sign-up, login, Player profile, hero choice
+  game/           stages, monsters, battles (world map placeholder for now)
+  tutor/          AI tutor "Ask the Wizard" (Sprint 2+)
+  abtest/         A/B test page (S1-5)
+templates/      HTML pages, one subfolder per app
+static/         CSS, JS, images; css/theme.css holds every color and font
+tests/          pytest tests
+docs/           plan.md (the build plan) and course docs
+```
+
+Root files are tool config: `manage.py` (Django commands), `requirements.txt`,
+`pyproject.toml` (ruff + pytest), `docker-compose.yml` (local Postgres), `.env.example`,
+`.python-version` (used by Render).

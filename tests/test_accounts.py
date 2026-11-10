@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth.models import User
 
-from accounts.models import Player
+from apps.accounts.models import Player
 
 PASSWORD = "dragon-castle-42"
 
