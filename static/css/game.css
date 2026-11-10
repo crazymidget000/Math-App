@@ -11,6 +11,15 @@ h3 {
   text-decoration: none;
 }
 
+.site-nav form {
+  margin: 0;
+}
+
+.site-nav button {
+  margin: 0;
+  padding: 0.4rem 0.9rem;
+}
+
 .hero-banner {
   text-align: center;
   padding-block: 2rem;
@@ -36,6 +45,9 @@ h3 {
 
 .errorlist {
   color: var(--mq-red);
-  list-style: none;
   padding: 0;
+}
+
+.errorlist li {
+  list-style: none;
 }

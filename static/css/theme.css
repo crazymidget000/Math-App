@@ -1,5 +1,6 @@
-/* The only place colors and fonts are defined. Everything else uses these variables. */
-:root {
+/* The only place colors and fonts are defined. Everything else uses these variables.
+   The :root[data-theme] selector is needed to beat Pico's own theme selectors. */
+:root[data-theme="light"] {
   --mq-purple: #6c4bd8;
   --mq-purple-dark: #5236b0;
   --mq-gold: #f6b93b;
