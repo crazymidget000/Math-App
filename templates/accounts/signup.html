@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Sign up · Math Quest{% endblock %}
+
+{% block content %}
+<article>
+  <h1>Create your hero</h1>
+  <p class="grown-up-note">Ask a grown-up to help you sign up.</p>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <label for="{{ form.username.id_for_label }}">Username</label>
+    {{ form.username }}
+    {{ form.username.errors }}
+
+    <label for="{{ form.password1.id_for_label }}">Password</label>
+    {{ form.password1 }}
+    {{ form.password1.errors }}
+
+    <label for="{{ form.password2.id_for_label }}">Type the password again</label>
+    {{ form.password2 }}
+    {{ form.password2.errors }}
+
+    <fieldset>
+      <legend>{{ form.hero.label }}</legend>
+      <div class="hero-choice">
+        {% for radio in form.hero %}
+          <label>{{ radio.tag }} {% if radio.data.value == "prince" %}🤴{% else %}👸{% endif %} {{ radio.choice_label }}</label>
+        {% endfor %}
+      </div>
+      {{ form.hero.errors }}
+    </fieldset>
+
+    <button type="submit">Start my quest</button>
+  </form>
+  <p>Already have a hero? <a href="{% url 'login' %}">Log in</a></p>
+</article>
+{% endblock %}

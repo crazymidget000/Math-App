@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero-banner">
+  <div class="emoji">🤴 👸 🐉</div>
+  <h1>Math Quest</h1>
+  <p>Answer math questions to defeat monsters and save the kingdom!</p>
+  {% if user.is_authenticated %}
+    <a href="{% url 'play' %}" role="button">Continue your quest</a>
+  {% else %}
+    <a href="{% url 'signup' %}" role="button">Start your quest</a>
+    <a href="{% url 'login' %}" role="button" class="secondary outline">I already have a hero</a>
+  {% endif %}
+</section>
+{% endblock %}

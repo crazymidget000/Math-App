@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}World map · Math Quest{% endblock %}
+
+{% block content %}
+{% with player=user.player %}
+<section class="hero-banner">
+  <div class="emoji">{% if player.hero == "prince" %}🤴{% else %}👸{% endif %}</div>
+  <h1>Welcome, {{ user.username }}!</h1>
+  <p>Level {{ player.level }} · {{ player.xp }} XP · {{ player.coins }} coins</p>
+  <p>The world map is coming soon. Get ready for battle!</p>
+</section>
+{% endwith %}
+{% endblock %}

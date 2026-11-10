@@ -1,0 +1,26 @@
+/* The only place colors and fonts are defined. Everything else uses these variables. */
+:root {
+  --mq-purple: #6c4bd8;
+  --mq-purple-dark: #5236b0;
+  --mq-gold: #f6b93b;
+  --mq-green: #2ecc71;
+  --mq-red: #e74c3c;
+  --mq-sky: #eef3ff;
+  --mq-ink: #2b2d42;
+  --mq-white: #ffffff;
+
+  --mq-font-body: "Nunito", "Trebuchet MS", system-ui, sans-serif;
+  --mq-font-display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+
+  --pico-font-family: var(--mq-font-body);
+  --pico-primary: var(--mq-purple);
+  --pico-primary-background: var(--mq-purple);
+  --pico-primary-border: var(--mq-purple);
+  --pico-primary-hover: var(--mq-purple-dark);
+  --pico-primary-hover-background: var(--mq-purple-dark);
+  --pico-primary-hover-border: var(--mq-purple-dark);
+  --pico-primary-inverse: var(--mq-white);
+  --pico-background-color: var(--mq-sky);
+  --pico-color: var(--mq-ink);
+  --pico-border-radius: 0.75rem;
+}
