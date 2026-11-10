@@ -38,10 +38,10 @@ INSTALLED_APPS = [
     "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     "django_htmx",
-    "accounts",
-    "game",
-    "tutor",
-    "abtest",
+    "apps.accounts",
+    "apps.game",
+    "apps.tutor",
+    "apps.abtest",
 ]
 
 MIDDLEWARE = [

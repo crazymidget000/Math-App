@@ -1,6 +1,6 @@
 # Math Quest: build plan
 
-> **How to use this file with Cursor:** keep this file in the repo root (or `docs/plan.md`) and add it as context in every Cursor chat (`@plan.md`). Build **one user story at a time** (see §12), on its own branch, and open a pull request for each. When this plan and the course project page disagree, the course page wins.
+> **How to use this file with Cursor:** this file lives at `docs/plan.md`; add it as context in every Cursor chat (`@plan.md`). Build **one user story at a time** (see §12), on its own branch, and open a pull request for each. When this plan and the course project page disagree, the course page wins.
 
 ---
 
@@ -83,26 +83,32 @@ No React, no SPA, no game engine. Pages are server-rendered Django templates, an
 
 ```
 .
-├── manage.py
-├── requirements.txt
+├── manage.py                  # Django command runner (stays at the root)
+├── requirements.txt           # Python packages, pinned
+├── pyproject.toml             # ruff + pytest settings
+├── docker-compose.yml         # local Postgres
 ├── .env.example               # every env var, with fake values; real .env is gitignored
-├── Procfile / render.yaml     # optional: start command for Render
-├── mathquest/                 # Django project: settings.py, urls.py, wsgi.py
-├── accounts/                  # sign-up view/form, Player profile, hero picker
-├── game/                      # stages, monsters, battles, question generator, rules
-│   ├── generator.py           # pure functions: make questions + answers (no DB)
-│   ├── rules.py               # pure functions: damage, XP, level-up, unlocks
-│   ├── services.py            # battle actions that touch the DB (start, answer, finish)
-│   └── management/commands/seed.py
-├── tutor/                     # OpenRouter client, prompt, JSON validation, limits, fallbacks
-├── abtest/                    # A/B page, click endpoint, stats JSON, reset command
+├── .python-version            # Python version Render uses
+│
+├── mathquest/                 # Django project config: settings.py, urls.py, wsgi.py
+├── apps/                      # all feature code, one Django app per feature
+│   ├── accounts/              # sign-up view/form, Player profile, hero picker
+│   ├── game/                  # stages, monsters, battles, question generator, rules
+│   │   ├── generator.py       # pure functions: make questions + answers (no DB)
+│   │   ├── rules.py           # pure functions: damage, XP, level-up, unlocks
+│   │   ├── services.py        # battle actions that touch the DB (start, answer, finish)
+│   │   └── management/commands/seed.py
+│   ├── tutor/                 # OpenRouter client, prompt, JSON validation, limits, fallbacks
+│   └── abtest/                # A/B page, click endpoint, stats JSON, reset command
 ├── templates/                 # base.html, game/*.html, partials/*.html, abtest/page.html
-├── static/                    # css/, js/htmx.min.js, img/heroes/, img/monsters/, CREDITS.md
+├── static/                    # css/ (theme.css = all colors/fonts), js/, img/, CREDITS.md
 ├── tests/                     # unit + integration tests (pytest)
 ├── e2e/                       # Playwright tests
 ├── .github/workflows/ci.yml   # lint + tests on every PR
-└── docs/mgt656/               # graded docs (§13)
+└── docs/                      # plan.md (this file) + mgt656/ graded docs (§13)
 ```
+
+App code paths elsewhere in this plan (e.g. `game/rules.py`, `tutor/validate.py`) live under `apps/`. Python imports use the full path (`from apps.game import rules`), but app labels, table names and migrations still use the short name (`game`).
 
 ---
 
