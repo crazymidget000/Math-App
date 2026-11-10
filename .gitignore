@@ -8,3 +8,5 @@ staticfiles/
 .DS_Store
 test-results/
 playwright-report/
+.neon
+node_modules/
