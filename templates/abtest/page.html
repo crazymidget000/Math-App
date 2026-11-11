@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Math Quest A/B Test</title>
+</head>
+<body>
+    <main>
+        <h1>Math Quest A/B Test</h1>
+        <p>Team members: {{ team_nicknames|join:", " }}</p>
+        <form method="post" action="{% url 'abtest:click' %}">
+            {% csrf_token %}
+            <button id="abtest" type="submit">{{ variant }}</button>
+        </form>
+    </main>
+</body>
+</html>
