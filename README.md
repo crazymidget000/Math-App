@@ -45,11 +45,16 @@ Web service settings:
 | Setting | Value |
 |---|---|
 | Build command | `pip install -r requirements.txt && python manage.py collectstatic --noinput` |
-| Start command | `python manage.py migrate --noinput && gunicorn mathquest.wsgi --bind 0.0.0.0:$PORT` |
+| Start command | `python manage.py migrate --noinput && python manage.py seed && gunicorn mathquest.wsgi --bind 0.0.0.0:$PORT` |
 | Auto-deploy | On, from `main` |
 
 Environment variables: `SECRET_KEY`, `DEBUG=False`, `DATABASE_URL` (Neon staging connection
-string). Render's own hostname is added to `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`
+string), `SEED_GRADER_PASSWORD`, `SEED_ADMIN_PASSWORD`.
+
+`python manage.py seed` creates or updates the `grader` (fresh player) and `admin` (staff +
+superuser) accounts with those passwords. It is safe to run on every deploy: it never
+duplicates accounts, keeps the grader's game progress, and only changes a password when the
+environment variable changes. Render's own hostname is added to `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`
 automatically; set those two variables only for extra custom domains. The Python version
 comes from `.python-version`.
 
