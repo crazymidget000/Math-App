@@ -1,63 +1,38 @@
-
 import os
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from apps.accounts.models import Player
 
+PASSWORD_VARS = ("SEED_GRADER_PASSWORD", "SEED_ADMIN_PASSWORD")
+
 
 class Command(BaseCommand):
-    help = "Create grader accounts and demo player data"
+    help = "Create or update the grader accounts. Safe to run any number of times."
 
     @transaction.atomic
     def handle(self, *args, **options):
-        admin_password = os.environ.get("SEED_ADMIN_PASSWORD")
-        player_password = os.environ.get("SEED_PLAYER_PASSWORD")
+        missing = [name for name in PASSWORD_VARS if not os.environ.get(name)]
+        if missing:
+            raise CommandError(f"Set {' and '.join(missing)} first.")
 
-        if not admin_password or not player_password:
-            raise CommandError(
-                "Set SEED_ADMIN_PASSWORD and SEED_PLAYER_PASSWORD first."
-            )
+        grader = self.upsert_user("grader", os.environ["SEED_GRADER_PASSWORD"], is_admin=False)
+        Player.objects.get_or_create(user=grader, defaults={"hero": Player.Hero.PRINCESS})
 
-        User = get_user_model()
+        self.upsert_user("admin", os.environ["SEED_ADMIN_PASSWORD"], is_admin=True)
 
-        accounts = [
-            ("admin@example.com", admin_password, True),
-            ("player@example.com", player_password, False),
-        ]
+        self.stdout.write(self.style.SUCCESS("Seed complete."))
 
-        for email, password, is_admin in accounts:
-            user, created = User.objects.get_or_create(
-                username=email,
-                defaults={
-                    "email": email,
-                    "is_staff": is_admin,
-                    "is_superuser": is_admin,
-                },
-            )
-
-            if created:
-                user.set_password(password)
-                user.save(update_fields=["password"])
-
-            if not is_admin:
-                Player.objects.get_or_create(
-                    user=user,
-                    defaults={
-                        "hero": Player.Hero.PRINCE,
-                        "hero_name": "Demo Hero",
-                        "level": 1,
-                        "xp": 0,
-                        "coins": 100,
-                    },
-                )
-
-            status = "Created" if created else "Already exists"
-            self.stdout.write(f"{status}: {email}")
-
-        self.stdout.write(
-            self.style.SUCCESS("Seed completed successfully!")
+    def upsert_user(self, username, password, is_admin):
+        user, created = get_user_model().objects.update_or_create(
+            username=username,
+            defaults={"is_staff": is_admin, "is_superuser": is_admin, "is_active": True},
         )
+        # Re-hashing an unchanged password would log out everyone using this account.
+        if created or not user.check_password(password):
+            user.set_password(password)
+            user.save(update_fields=["password"])
+        self.stdout.write(f"{'Created' if created else 'Updated'}: {username}")
+        return user
