@@ -31,13 +31,13 @@ Known limitations: the game itself is not built yet, so `/play/` is a placeholde
 
 ## Working with AI agents
 
-One concrete example came from verifying the seed command on staging. After finishing the seed command and opening PR #11, team used ChatGPT to draft a handoff message for the teammate who manages Render. The message listed exact steps: set `SEED_ADMIN_PASSWORD` and `SEED_PLAYER_PASSWORD`, run `python manage.py seed` twice to check that no duplicates are created, and confirm both grader accounts can log in.
+One concrete example came up around secrets. While building the seed command, AI tool suggested putting the grader passwords directly in the code so the accounts would work immediately. This would have committed passwords to the repository, which breaks our rule that no passwords or API keys go in the repo.
 
-What worked: the checklist was specific and complete, and the teammate who owns the Render deployment (Phuong Vu) followed it and reported that the seed worked and both grader accounts could log in.
+What worked: the AI's code ran and created the accounts as asked, and teammate caught the problem during review before it was merged to `main`.
 
-What did not work: the message was full of jargon (environment variables, running a management command), and the teammate who sent it said they did not understand what it meant, so they could not judge whether it was correct before sending it.
+What did not work: the AI chose convenience over security. It did not warn us that hardcoded credentials stay in the Git history and are visible to anyone with repo access, even if they are deleted later.
 
-What the team changed: the person who owns the deployment ran the steps and posted the actual results (which account lands where, what each page shows) in the team chat, so the team verified against real behavior instead of trusting the AI-written steps. We will keep asking AI to explain its instructions in plain language, and we will confirm results on staging ourselves before checking off an issue.
+What the team changed: we moved the secrets into environment variables. The seed command now reads `SEED_ADMIN_PASSWORD` and `SEED_PLAYER_PASSWORD`, which are set in Render instead of stored in the code, and `.env.example` contains only placeholder values (for example `OPENROUTER_API_KEY=sk-or-fake-key`). We also check AI-generated changes for hardcoded secrets before merging them.
 
 ## Backlog changes for Sprint 2
 
