@@ -1,0 +1,65 @@
+name: Promote to production
+
+# Run by hand from the Actions tab. Moves the `production` branch up to `main`,
+# then asks Render to deploy it.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "promote" to deploy the current main to production'
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: promote-production
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check inputs
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+          HOOK: ${{ secrets.RENDER_PRODUCTION_DEPLOY_HOOK }}
+        run: |
+          if [ "$CONFIRM" != "promote" ]; then
+            echo "::error::Type promote in the confirm box to run this workflow."
+            exit 1
+          fi
+          if [ -z "$HOOK" ]; then
+            echo "::error::Repository secret RENDER_PRODUCTION_DEPLOY_HOOK is not set."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Fast-forward production to main
+        run: |
+          if git ls-remote --exit-code --heads origin production > /dev/null; then
+            git fetch origin production
+            if ! git merge-base --is-ancestor origin/production HEAD; then
+              echo "::error::production has commits that are not on main. Merge them into main first."
+              exit 1
+            fi
+          fi
+          git push origin HEAD:refs/heads/production
+
+      - name: Trigger Render deploy
+        env:
+          HOOK: ${{ secrets.RENDER_PRODUCTION_DEPLOY_HOOK }}
+        run: curl --fail --silent --show-error --request POST "$HOOK" --output /dev/null
+
+      - name: Summary
+        run: |
+          {
+            echo "### Promoted to production"
+            echo "Commit: \`$(git rev-parse --short HEAD)\` $(git log -1 --format=%s)"
+            echo "Run by: @${{ github.actor }}"
+            echo "Watch the deploy in the Render dashboard (mathquest-production)."
+          } >> "$GITHUB_STEP_SUMMARY"
