@@ -38,7 +38,7 @@ pytest
 Tests run against the Docker Postgres, so it must be up (`docker compose up -d`).
 Stop it with `docker compose down`; add `-v` to also wipe the data.
 
-## Deploying to Render (staging)
+## Staging (Render)
 
 Web service settings:
 
@@ -57,6 +57,39 @@ duplicates accounts, keeps the grader's game progress, and only changes a passwo
 environment variable changes. Render's own hostname is added to `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS`
 automatically; set those two variables only for extra custom domains. The Python version
 comes from `.python-version`.
+
+## Production
+
+Production is a second Render web service, `mathquest-production`, with its own database (the
+Neon `production` branch). It deploys from the git branch **`production`**, never from `main`,
+and its auto-deploy is off. Nobody pushes to `production` by hand.
+
+| | Staging | Production |
+|---|---|---|
+| Render service | `mathquest-staging` | `mathquest-production` |
+| Git branch | `main` | `production` |
+| Neon branch (`DATABASE_URL`) | `staging` | `production` |
+| How it deploys | after merging to `main` | "Promote to production" workflow |
+
+Settings are the same as staging (build command, start command, variable names), except:
+`DATABASE_URL` is the Neon **production** connection string, `SECRET_KEY` is different, and
+auto-deploy is off. `SEED_GRADER_PASSWORD` and `SEED_ADMIN_PASSWORD` match staging, so the
+grader accounts work on both.
+
+### Promoting to production
+
+1. Check the change works on staging first.
+2. On GitHub, open **Actions → Promote to production → Run workflow**, type `promote`, and run it.
+3. The workflow ([`.github/workflows/promote.yml`](.github/workflows/promote.yml)) fast-forwards
+   `production` to the current `main`, then calls Render's deploy hook. The run summary shows
+   which commit was promoted and by whom.
+4. Watch the deploy in Render, then check the production site.
+
+The workflow refuses to run if `production` has commits that aren't on `main`. It needs the
+repository secret `RENDER_PRODUCTION_DEPLOY_HOOK` (Render: service **Settings → Deploy Hook**).
+
+**Production freeze:** don't promote, change production variables or reset its database during
+the announced A/B bot window (plan §12).
 
 ## Project layout
 
