@@ -118,6 +118,9 @@ log in, enter a battle, submit a wrong answer, then select **Ask the Wizard**. C
 question label matches the wrong question and answering the next question still works.
 Check once with the configured model and once with credentials absent in a local environment
 to exercise the fallback; do not remove shared staging credentials just for this check.
+For the real-model check, use a fresh wrong question and verify its saved `HintRequest.status`
+is `ok`, together with the expected OpenRouter activity. A previously cached fallback stays
+cached after credentials change, and displayed hint text alone is not proof of a provider call.
 
 ## Staging (Render)
 
