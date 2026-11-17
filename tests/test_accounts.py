@@ -92,7 +92,7 @@ class TestPlayPage:
         assert response.status_code == 302
         assert response.url == "/accounts/login/?next=/play/"
 
-    def test_logged_in_player_sees_placeholder(self, client, player):
+    def test_logged_in_player_sees_play_page(self, client, player):
         client.force_login(player.user)
         response = client.get("/play/")
         assert response.status_code == 200

@@ -1,0 +1,48 @@
+<section id="battle-state" class="battle-arena" aria-label="Math battle">
+  <header class="hero-banner">
+    <div class="monster-emoji" aria-hidden="true">{{ battle.monster.emoji }}</div>
+    <h1>{{ battle.monster.name }}</h1>
+    <label for="monster-hp">Monster HP: {{ battle.monster_hp }} / {{ battle.monster_max_hp }}</label>
+    <progress id="monster-hp" value="{{ battle.monster_hp }}" max="{{ battle.monster_max_hp }}"></progress>
+    <p>{% if battle.player.hero == "prince" %}🤴{% else %}👸{% endif %} {{ battle.player.hero_name }}</p>
+    <label for="player-hp">Your HP: {{ battle.player_hp }} / {{ battle.player_max_hp }}</label>
+    <progress id="player-hp" value="{{ battle.player_hp }}" max="{{ battle.player_max_hp }}"></progress>
+  </header>
+  <div role="status" aria-live="polite">
+    {% if last %}
+      {% if last.is_correct %}
+        <p>{% if last.damage_dealt == 30 %}Critical hit!{% else %}Correct!{% endif %} You dealt {{ last.damage_dealt }} damage.</p>
+      {% else %}
+        <p>Ouch! You lost {{ last.damage_taken }} HP. {{ last.prompt }} = <strong>{{ last.correct_answer }}</strong>.</p>
+        <p>Try counting on from the first number. You can do this!</p>
+      {% endif %}
+    {% endif %}
+  </div>
+  {% if battle.status == "active" %}
+    <h2 class="question" id="question-prompt">{{ question.prompt }} = ?</h2>
+    <form method="post" action="{% url 'answer' battle.pk %}"
+          hx-post="{% url 'answer' battle.pk %}" hx-target="#battle-state" hx-swap="outerHTML"
+          hx-disabled-elt="find button" aria-labelledby="question-prompt">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Attack!</button>
+    </form>
+    <p class="battle-tip">Take your time. Quick answers get a bonus, but there is no time limit.</p>
+    <form method="post" action="{% url 'flee' battle.pk %}">
+      {% csrf_token %}<button type="submit" class="secondary outline">Leave battle</button>
+    </form>
+  {% else %}
+    {% if battle.status == "won" %}
+      <h2>Victory!</h2>
+      <p>You earned {{ battle.xp_awarded }} XP and {{ battle.coins_awarded }} coins.</p>
+      {% if battle.leveled_up %}<p>Level up! You are now level {{ battle.player.level }}.</p>{% endif %}
+      {% if battle.monster.is_boss %}<p>Addition Meadow complete! More stages are coming soon.</p>{% endif %}
+    {% elif battle.status == "lost" %}
+      <h2>Good effort. Try again!</h2><p>Your XP and coins are safe.</p>
+    {% else %}<h2>You left the battle.</h2>{% endif %}
+    <form method="post" action="{% url 'start_battle' battle.monster_id %}">
+      {% csrf_token %}<button type="submit">Play again</button>
+    </form>
+    <a href="{% url 'play' %}" role="button" class="secondary">Back to Addition Meadow</a>
+  {% endif %}
+</section>
