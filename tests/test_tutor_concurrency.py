@@ -8,7 +8,7 @@ from types import SimpleNamespace
 import pytest
 from django.apps import apps
 from django.contrib.auth.models import User
-from django.db import close_old_connections, connection
+from django.db import close_old_connections, connection, connections
 
 from apps.accounts.models import Player
 from apps.game import services as game_services
@@ -49,7 +49,7 @@ def test_simultaneous_hints_share_result_while_next_answer_still_works(monkeypat
                 second_started.set()
             return services.hint_for_question(Question.objects.get(pk=wrong.pk)).pk
         finally:
-            close_old_connections()
+            connections.close_all()
 
     def answer_next():
         close_old_connections()
@@ -58,7 +58,7 @@ def test_simultaneous_hints_share_result_while_next_answer_still_works(monkeypat
                 user, battle.pk, next_question.pk, next_question.correct_answer
             ).monster_hp
         finally:
-            close_old_connections()
+            connections.close_all()
 
     with ThreadPoolExecutor(max_workers=3) as pool:
         first = pool.submit(request_hint)
