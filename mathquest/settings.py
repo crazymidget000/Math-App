@@ -22,6 +22,9 @@ DEBUG = os.environ.get("DEBUG", "False").lower() in ("1", "true", "yes")
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", "localhost,127.0.0.1")
 CSRF_TRUSTED_ORIGINS = env_list("CSRF_TRUSTED_ORIGINS")
 AB_TEST_TEAM_NICKNAMES = env_list("AB_TEST_TEAM_NICKNAMES", "blushing-leopard")
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+OPENROUTER_MODEL = os.environ.get("OPENROUTER_MODEL", "")
+AI_TIMEOUT_SECONDS = os.environ.get("AI_TIMEOUT_SECONDS", "8")
 
 # Render sets this automatically on every web service.
 RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")

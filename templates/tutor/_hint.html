@@ -1,0 +1,18 @@
+<aside id="wizard-hint-{{ question.pk }}" class="wizard-hint" aria-labelledby="wizard-title-{{ question.pk }}">
+  <h3 id="wizard-title-{{ question.pk }}">Help with {{ question.prompt }}</h3>
+  <div aria-live="polite">
+    {% if hint %}
+      <p>{{ hint.response_json.encouragement }}</p>
+      <ol>{% for step in hint.response_json.steps %}<li>{{ step }}</li>{% endfor %}</ol>
+    {% else %}
+      <form class="wizard-form" method="post" action="{% url 'battle_hint' question.battle_id %}"
+            hx-post="{% url 'battle_hint' question.battle_id %}"
+            hx-target="#wizard-hint-{{ question.pk }}" hx-swap="outerHTML" hx-disabled-elt="find button">
+        {% csrf_token %}
+        <input type="hidden" name="question_id" value="{{ question.pk }}">
+        <button type="submit" class="secondary outline">Ask the Wizard</button>
+        <p class="wizard-loading" role="status">The wizard is thinking…</p>
+      </form>
+    {% endif %}
+  </div>
+</aside>

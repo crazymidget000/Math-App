@@ -77,7 +77,7 @@ There is no time limit. Defeating a monster unlocks the next one.
 You can resume an active battle, leave it, or retry after losing. A win awards XP
 and coins once per battle; replaying a completed monster is allowed. Stage 1 rewards
 are 40/50/60/100 XP and 10/15/20/40 coins. HP and question difficulty follow the plan.
-Later stages and AI wizard hints are separate stories and are not yet available.
+Later stages are separate stories and are not yet available.
 
 Battle state is stored on the server. Answer submissions include the question ID
 so repeated or stale submissions cannot attack twice. Services lock the player
@@ -89,6 +89,35 @@ pytest tests/test_rules.py tests/test_battle.py tests/test_battle_concurrency.py
 ```
 
 The concurrency tests require PostgreSQL; SQLite does not exercise row locks.
+
+## Ask the Wizard (Sprint 2)
+
+After a wrong answer, **Ask the Wizard** offers a short explanation for that specific
+question. The hint is labelled with the old question while the next question remains
+playable. It works with htmx and ordinary form submissions, including after losing a battle.
+Hints are saved per question, so repeat requests reuse the result rather than calling AI again.
+
+Run `python manage.py migrate` for the new hint table. Configure `OPENROUTER_API_KEY` and
+`OPENROUTER_MODEL` in your local `.env` or the Render service's environment variables.
+Choose a model supporting JSON object output. `AI_TIMEOUT_SECONDS` defaults to `8`.
+The server calls OpenRouter; neither the key nor raw provider errors are sent to the browser.
+Only the question's operands, operation and numeric player answer enter the user prompt.
+
+Missing credentials, provider errors, timeouts, or invalid JSON use a predefined hint.
+This means a working fallback alone does **not** verify the real OpenRouter integration.
+The response is checked for required fields, allowed strategies, up to four steps and
+160-character text bounds. Answer-leak detection, daily limits and strategy icons remain
+Sprint 3 work; the model is instructed not to state the answer, without a leakage guarantee.
+
+```bash
+pytest tests/test_tutor.py tests/test_tutor_concurrency.py
+```
+
+These tests mock OpenRouter and never spend API credits. To verify on staging after deployment:
+log in, enter a battle, submit a wrong answer, then select **Ask the Wizard**. Confirm its
+question label matches the wrong question and answering the next question still works.
+Check once with the configured model and once with credentials absent in a local environment
+to exercise the fallback; do not remove shared staging credentials just for this check.
 
 ## Staging (Render)
 
