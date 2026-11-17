@@ -38,6 +38,33 @@ pytest
 Tests run against the Docker Postgres, so it must be up (`docker compose up -d`).
 Stop it with `docker compose down`; add `-v` to also wipe the data.
 
+## Addition and subtraction generator
+
+`apps/game/generator.py` implements the Stage 1–2 monster parameter sets in
+[`docs/plan.md`](docs/plan.md), section 6. Pass a monster's `question_params` and
+reuse a `random.Random` instance:
+
+```python
+from random import Random
+from apps.game.generator import generate_question
+
+rng = Random(42)  # Seed for reproducible tests; use Random() during normal play.
+question = generate_question({"op": "add", "max_sum": 10}, rng)
+# question has prompt, a, b, operation, and answer fields.
+```
+
+Ranges and maximums are inclusive. Without explicit operand ranges, operands
+start at zero. Subtraction answers are nonnegative. Invalid or impossible
+parameters raise `ValueError`. Keep `answer` on the server until the player
+answers; battle integration and repeat avoidance belong to the battle-flow story.
+
+The generator tests cover all eight Stage 1–2 configurations and run with pytest,
+or independently without Django, Postgres, or third-party packages:
+
+```bash
+python -m unittest discover -s tests -p test_generator.py
+```
+
 ## Staging (Render)
 
 Web service settings:
