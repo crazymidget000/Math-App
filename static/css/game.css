@@ -51,3 +51,37 @@ h3 {
 .errorlist li {
   list-style: none;
 }
+
+.monster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 1rem;
+}
+
+.monster-emoji {
+  font-size: 3rem;
+}
+
+.battle-arena {
+  max-width: 640px;
+  margin-inline: auto;
+}
+
+.battle-arena .hero-banner {
+  padding-block: 0.5rem;
+}
+
+.question {
+  text-align: center;
+  font-size: clamp(2rem, 8vw, 3rem);
+}
+
+.battle-arena progress::-webkit-progress-value {
+  transition: width 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .battle-arena progress::-webkit-progress-value {
+    transition: none;
+  }
+}

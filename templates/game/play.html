@@ -8,7 +8,24 @@
   <div class="emoji">{% if player.hero == "prince" %}🤴{% else %}👸{% endif %}</div>
   <h1>Welcome, {{ user.username }}!</h1>
   <p>Level {{ player.level }} · {{ player.xp }} XP · {{ player.coins }} coins</p>
-  <p>The world map is coming soon. Get ready for battle!</p>
+  <p>Addition Meadow · Stage 1</p>
+  <p>Answer correctly to attack. Defeat each monster to unlock the next!</p>
+  {% if active %}<a role="button" href="{% url 'battle' active.pk %}">Resume your battle</a>{% endif %}
 </section>
 {% endwith %}
+<div class="monster-grid">
+  {% for monster in monsters %}
+  <article>
+    <div class="monster-emoji" aria-hidden="true">{{ monster.emoji }}</div>
+    <h2>{{ monster.name }}{% if monster.is_boss %} · Boss{% endif %}</h2>
+    <p>{{ monster.max_hp }} HP · {{ monster.xp_reward }} XP · {{ monster.coin_reward }} coins</p>
+    {% if monster.defeated %}<p>✓ Defeated! Play again for more practice.</p>{% endif %}
+    {% if monster.unlocked %}
+    <form method="post" action="{% url 'start_battle' monster.pk %}">
+      {% csrf_token %}<button type="submit">Battle {{ monster.name }}</button>
+    </form>
+    {% else %}<p>🔒 Defeat the previous monster to unlock.</p>{% endif %}
+  </article>
+  {% empty %}<p>The meadow is being prepared. Please try again soon.</p>{% endfor %}
+</div>
 {% endblock %}

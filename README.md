@@ -55,8 +55,8 @@ question = generate_question({"op": "add", "max_sum": 10}, rng)
 
 Ranges and maximums are inclusive. Without explicit operand ranges, operands
 start at zero. Subtraction answers are nonnegative. Invalid or impossible
-parameters raise `ValueError`. Keep `answer` on the server until the player
-answers; battle integration and repeat avoidance belong to the battle-flow story.
+parameters raise `ValueError`. The battle service keeps the answer on the server
+until the player answers and avoids consecutive duplicate questions.
 
 The generator tests cover all eight Stage 1–2 configurations and run with pytest,
 or independently without Django, Postgres, or third-party packages:
@@ -64,6 +64,31 @@ or independently without Django, Postgres, or third-party packages:
 ```bash
 python -m unittest discover -s tests -p test_generator.py
 ```
+
+## Playing Stage 1
+
+Run `python manage.py migrate` after updating the code. The game migrations create
+Addition Meadow and its four monsters automatically, including on Render where
+the start command already runs migrations. Sign up or log in, open `/play/`, and
+choose **Battle Slime**. Answer the question and press **Attack!**. Correct answers
+deal 20 damage (30 within six seconds); mistakes cost 15 HP, or 20 against the boss.
+There is no time limit. Defeating a monster unlocks the next one.
+
+You can resume an active battle, leave it, or retry after losing. A win awards XP
+and coins once per battle; replaying a completed monster is allowed. Stage 1 rewards
+are 40/50/60/100 XP and 10/15/20/40 coins. HP and question difficulty follow the plan.
+Later stages and AI wizard hints are separate stories and are not yet available.
+
+Battle state is stored on the server. Answer submissions include the question ID
+so repeated or stale submissions cannot attack twice. Services lock the player
+and battle inside a transaction, and only the owning player can access a battle.
+The page works both with htmx updates and ordinary form submissions.
+
+```bash
+pytest tests/test_rules.py tests/test_battle.py tests/test_battle_concurrency.py
+```
+
+The concurrency tests require PostgreSQL; SQLite does not exercise row locks.
 
 ## Staging (Render)
 
@@ -124,7 +149,7 @@ the announced A/B bot window (plan §12).
 mathquest/      Django config: settings, URLs, WSGI entry point
 apps/           All feature code, one folder per feature
   accounts/       sign-up, login, Player profile, hero choice
-  game/           stages, monsters, battles (world map placeholder for now)
+  game/           question generator, battle rules, playable Stage 1
   tutor/          AI tutor "Ask the Wizard" (Sprint 2+)
   abtest/         A/B test page (S1-5)
 templates/      HTML pages, one subfolder per app
