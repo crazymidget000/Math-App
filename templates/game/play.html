@@ -48,11 +48,18 @@
       <p>{{ monster.max_hp }} HP · {{ monster.xp_reward }} XP · {{ monster.coin_reward }} coins</p>
       {% if monster.state == "defeated" %}
         <p><span class="state-badge state-defeated">✓ Defeated</span></p>
+        {% if monster.unlocked %}
+        <form method="post" action="{% url 'start_battle' monster.pk %}">
+          {% csrf_token %}<button type="submit">Play {{ monster.name }} again</button>
+        </form>
+        {% endif %}
       {% elif monster.state == "unlocked" %}
         <p><span class="state-badge state-unlocked">⚔️ Ready to battle</span></p>
+        {% if monster.unlocked %}
         <form method="post" action="{% url 'start_battle' monster.pk %}">
           {% csrf_token %}<button type="submit">Battle {{ monster.name }}</button>
         </form>
+        {% endif %}
       {% else %}
         <p><span class="state-badge state-locked">🔒 Locked</span></p>
         <p>Defeat the previous monster to unlock.</p>
