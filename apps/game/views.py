@@ -6,21 +6,21 @@ from apps.tutor.models import HintRequest
 
 from . import services
 from .forms import AnswerForm
-from .models import Battle, Monster
+from .models import Battle
 
 
 @login_required
 def play(request):
     player = getattr(request.user, "player", None)
-    monsters = list(Monster.objects.filter(stage__order=1).select_related("stage"))
-    defeated = set(
-        Battle.objects.filter(player=player, status="won").values_list("monster_id", flat=True)
+    monsters, stages = services.progress_for(player)
+    active = None
+    if player is not None:
+        active = Battle.objects.filter(player=player, status="active").first()
+    return render(
+        request,
+        "game/play.html",
+        {"monsters": monsters, "stages": stages, "active": active},
     )
-    for monster in monsters:
-        monster.unlocked = player is not None and services.unlocked(player, monster)
-        monster.defeated = monster.pk in defeated
-    active = Battle.objects.filter(player=player, status="active").first()
-    return render(request, "game/play.html", {"monsters": monsters, "active": active})
 
 
 def _render_battle(request, battle, form=None):
