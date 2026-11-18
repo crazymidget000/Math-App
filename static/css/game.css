@@ -62,6 +62,64 @@ h3 {
   font-size: 3rem;
 }
 
+.stage-block {
+  margin-bottom: 2rem;
+}
+
+.stage-block > header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.stage-block.stage-closed {
+  opacity: 0.7;
+}
+
+.monster-card {
+  border: 3px solid var(--pico-muted-border-color);
+}
+
+.monster-card[data-state="unlocked"] {
+  border-color: var(--mq-green-dark);
+}
+
+.monster-card[data-state="defeated"] {
+  border-style: double;
+  background: var(--pico-card-sectioning-background-color);
+}
+
+.monster-card[data-state="locked"] {
+  border-style: dashed;
+  opacity: 0.65;
+}
+
+.monster-card[data-state="locked"] .monster-emoji {
+  filter: grayscale(1);
+}
+
+.state-badge {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  border-radius: 1rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: 2px solid currentColor;
+}
+
+.state-unlocked {
+  color: var(--mq-green-dark);
+}
+
+.state-defeated {
+  color: var(--mq-gray);
+}
+
+.state-locked {
+  color: var(--mq-brown);
+}
+
 .battle-arena {
   max-width: 640px;
   margin-inline: auto;

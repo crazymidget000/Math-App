@@ -21,8 +21,9 @@ def progress_for(player):
     """Return (monsters, stages) with progression state attached.
 
     Two queries total, however many monsters there are. Each monster gets
-    .state ("locked" / "unlocked" / "defeated") plus .unlocked and .defeated
-    booleans. stages is a list of {"stage", "monsters", "open"} dicts.
+    .state ("locked" / "unlocked" / "defeated"), .unlocked (can be battled now, which
+    includes replaying a defeated monster) and .defeated. stages is a list of
+    {"stage", "monsters", "open"} dicts.
     """
     monsters = list(Monster.objects.select_related("stage").order_by("stage__order", "order"))
     defeated = set()
@@ -36,34 +37,31 @@ def progress_for(player):
     for monster in monsters:
         grouped.setdefault(monster.stage_id, []).append(monster)
     stage_lists = list(grouped.values())
-    ordered_monsters = [[(m.pk, m.is_boss) for m in group] for group in stage_lists]
-    states = progression.monster_states(ordered_monsters, defeated)
-    eligible = progression.eligible_monsters(ordered_monsters, defeated)
+    states = progression.monster_states(
+        [[(m.pk, m.is_boss) for m in stage_monsters] for stage_monsters in stage_lists],
+        defeated,
+    )
     stages = []
     for stage_monsters in stage_lists:
         for monster in stage_monsters:
             state = states[monster.pk]
-            if monster.stage.order > PLAYABLE_STAGE_LIMIT:
+            if state == progression.UNLOCKED and monster.stage.order > PLAYABLE_STAGE_LIMIT:
                 state = progression.LOCKED
             monster.state = state
-            monster.unlocked = (
-                player is not None
-                and monster.stage.order <= PLAYABLE_STAGE_LIMIT
-                and monster.pk in eligible
-            )
+            monster.unlocked = state in (progression.UNLOCKED, progression.DEFEATED)
             monster.defeated = state == progression.DEFEATED
         stages.append(
             {
                 "stage": stage_monsters[0].stage,
                 "monsters": stage_monsters,
-                "open": any(m.unlocked for m in stage_monsters),
+                "open": any(m.state != progression.LOCKED for m in stage_monsters),
             }
         )
     return monsters, stages
 
 
 def unlocked(player, monster):
-    """True for eligible monsters, including defeated monsters played again."""
+    """True if the monster can be battled now: unlocked, or defeated and replayed."""
     monsters, _ = progress_for(player)
     return any(m.pk == monster.pk and m.unlocked for m in monsters)
 
