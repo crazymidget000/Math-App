@@ -2,6 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from apps.tutor.models import HintRequest
+
 from . import services
 from .forms import AnswerForm
 from .models import Battle, Monster
@@ -29,8 +31,19 @@ def _render_battle(request, battle, form=None):
     template = "game/battle.html"
     if request.headers.get("HX-Request") == "true":
         template = "game/_battle_state.html"
+    wizard_hint = None
+    if last is not None and last.is_correct is False:
+        wizard_hint = HintRequest.objects.filter(question=last).first()
     return render(
-        request, template, {"battle": battle, "question": question, "last": last, "form": form}
+        request,
+        template,
+        {
+            "battle": battle,
+            "question": question,
+            "last": last,
+            "form": form,
+            "wizard_hint": wizard_hint,
+        },
     )
 
 

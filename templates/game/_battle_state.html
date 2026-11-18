@@ -15,6 +15,7 @@
       {% else %}
         <p>Ouch! You lost {{ last.damage_taken }} HP. {{ last.prompt }} = <strong>{{ last.correct_answer }}</strong>.</p>
         <p>Try counting on from the first number. You can do this!</p>
+        {% include "tutor/_hint.html" with question=last hint=wizard_hint csrf_token=csrf_token only %}
       {% endif %}
     {% endif %}
   </div>
