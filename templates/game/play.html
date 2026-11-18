@@ -3,29 +3,65 @@
 {% block title %}World map · Math Quest{% endblock %}
 
 {% block content %}
+<style>
+  .stage-block { margin-bottom: 2rem; }
+  .stage-block > header { display: flex; flex-wrap: wrap; gap: .5rem; align-items: baseline; }
+  .stage-block.stage-closed { opacity: .7; }
+  .monster-card { border: 3px solid var(--pico-muted-border-color); }
+  .monster-card[data-state="unlocked"] { border-color: #2e9e4f; }
+  .monster-card[data-state="defeated"] { border-style: double; background: var(--pico-card-sectioning-background-color); }
+  .monster-card[data-state="locked"] { border-style: dashed; opacity: .65; }
+  .monster-card[data-state="locked"] .monster-emoji { filter: grayscale(1); }
+  .state-badge { display: inline-block; padding: .1rem .6rem; border-radius: 1rem; font-weight: 700; font-size: .85rem; border: 2px solid currentColor; }
+  .state-unlocked { color: #1f7a3a; }
+  .state-defeated { color: #555; }
+  .state-locked { color: #7a4b00; }
+</style>
+
 {% with player=user.player %}
 <section class="hero-banner">
   <div class="emoji">{% if player.hero == "prince" %}🤴{% else %}👸{% endif %}</div>
   <h1>Welcome, {{ user.username }}!</h1>
   <p>Level {{ player.level }} · {{ player.xp }} XP · {{ player.coins }} coins</p>
-  <p>Addition Meadow · Stage 1</p>
   <p>Answer correctly to attack. Defeat each monster to unlock the next!</p>
   {% if active %}<a role="button" href="{% url 'battle' active.pk %}">Resume your battle</a>{% endif %}
 </section>
 {% endwith %}
-<div class="monster-grid">
-  {% for monster in monsters %}
-  <article>
-    <div class="monster-emoji" aria-hidden="true">{{ monster.emoji }}</div>
-    <h2>{{ monster.name }}{% if monster.is_boss %} · Boss{% endif %}</h2>
-    <p>{{ monster.max_hp }} HP · {{ monster.xp_reward }} XP · {{ monster.coin_reward }} coins</p>
-    {% if monster.defeated %}<p>✓ Defeated! Play again for more practice.</p>{% endif %}
-    {% if monster.unlocked %}
-    <form method="post" action="{% url 'start_battle' monster.pk %}">
-      {% csrf_token %}<button type="submit">Battle {{ monster.name }}</button>
-    </form>
-    {% else %}<p>🔒 Defeat the previous monster to unlock.</p>{% endif %}
-  </article>
-  {% empty %}<p>The meadow is being prepared. Please try again soon.</p>{% endfor %}
-</div>
+
+{% for entry in stages %}
+<section class="stage-block{% if not entry.open %} stage-closed{% endif %}">
+  <header>
+    <h2>Stage {{ entry.stage.order }}: {{ entry.stage.name }}</h2>
+    {% if entry.open %}
+      <span class="state-badge state-unlocked">Open</span>
+    {% else %}
+      <span class="state-badge state-locked">🔒 Locked</span>
+    {% endif %}
+  </header>
+  {% if not entry.open %}<p>Defeat the boss of the previous stage to unlock this one.</p>{% endif %}
+
+  <div class="monster-grid">
+    {% for monster in entry.monsters %}
+    <article class="monster-card" data-state="{{ monster.state }}">
+      <div class="monster-emoji" aria-hidden="true">{{ monster.emoji }}</div>
+      <h3>{{ monster.name }}{% if monster.is_boss %} · Boss{% endif %}</h3>
+      <p>{{ monster.max_hp }} HP · {{ monster.xp_reward }} XP · {{ monster.coin_reward }} coins</p>
+      {% if monster.state == "defeated" %}
+        <p><span class="state-badge state-defeated">✓ Defeated</span></p>
+      {% elif monster.state == "unlocked" %}
+        <p><span class="state-badge state-unlocked">⚔️ Ready to battle</span></p>
+        <form method="post" action="{% url 'start_battle' monster.pk %}">
+          {% csrf_token %}<button type="submit">Battle {{ monster.name }}</button>
+        </form>
+      {% else %}
+        <p><span class="state-badge state-locked">🔒 Locked</span></p>
+        <p>Defeat the previous monster to unlock.</p>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% empty %}
+<p>The world is being prepared. Please try again soon.</p>
+{% endfor %}
 {% endblock %}
