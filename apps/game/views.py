@@ -19,7 +19,7 @@ def play(request):
     return render(
         request,
         "game/play.html",
-        {"monsters": monsters, "stages": stages, "active": active},
+        {"player": player, "monsters": monsters, "stages": stages, "active": active},
     )
 
 
