@@ -36,34 +36,31 @@ def progress_for(player):
     for monster in monsters:
         grouped.setdefault(monster.stage_id, []).append(monster)
     stage_lists = list(grouped.values())
-    ordered_monsters = [[(m.pk, m.is_boss) for m in group] for group in stage_lists]
-    states = progression.monster_states(ordered_monsters, defeated)
-    eligible = progression.eligible_monsters(ordered_monsters, defeated)
+    states = progression.monster_states(
+        [[(m.pk, m.is_boss) for m in stage_monsters] for stage_monsters in stage_lists],
+        defeated,
+    )
     stages = []
     for stage_monsters in stage_lists:
         for monster in stage_monsters:
             state = states[monster.pk]
-            if monster.stage.order > PLAYABLE_STAGE_LIMIT:
+            if state == progression.UNLOCKED and monster.stage.order > PLAYABLE_STAGE_LIMIT:
                 state = progression.LOCKED
             monster.state = state
-            monster.unlocked = (
-                player is not None
-                and monster.stage.order <= PLAYABLE_STAGE_LIMIT
-                and monster.pk in eligible
-            )
+            monster.unlocked = state == progression.UNLOCKED
             monster.defeated = state == progression.DEFEATED
         stages.append(
             {
                 "stage": stage_monsters[0].stage,
                 "monsters": stage_monsters,
-                "open": any(m.unlocked for m in stage_monsters),
+                "open": any(m.state != progression.LOCKED for m in stage_monsters),
             }
         )
     return monsters, stages
 
 
 def unlocked(player, monster):
-    """True for eligible monsters, including defeated monsters played again."""
+    """True only if the monster can be battled now (not locked, not defeated)."""
     monsters, _ = progress_for(player)
     return any(m.pk == monster.pk and m.unlocked for m in monsters)
 
