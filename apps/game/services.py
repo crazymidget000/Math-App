@@ -9,24 +9,60 @@ from django.utils import timezone
 
 from apps.accounts.models import Player
 
-from . import rules
+from . import progression, rules
 from .generator import generate_question
 from .models import Battle, Monster, Question
 
+# Stages whose questions the generator can already produce. Raise this in S3-1.
+PLAYABLE_STAGE_LIMIT = 2
+
+
+def progress_for(player):
+    """Return (monsters, stages) with progression state attached.
+
+    Two queries total, however many monsters there are. Each monster gets
+    .state ("locked" / "unlocked" / "defeated") plus .unlocked and .defeated
+    booleans. stages is a list of {"stage", "monsters", "open"} dicts.
+    """
+    monsters = list(Monster.objects.select_related("stage").order_by("stage__order", "order"))
+    defeated = set()
+    if player is not None:
+        defeated = set(
+            Battle.objects.filter(player=player, status=Battle.Status.WON).values_list(
+                "monster_id", flat=True
+            )
+        )
+    grouped = {}
+    for monster in monsters:
+        grouped.setdefault(monster.stage_id, []).append(monster)
+    stage_lists = list(grouped.values())
+    states = progression.monster_states(
+        [[(m.pk, m.is_boss) for m in stage_monsters] for stage_monsters in stage_lists],
+        defeated,
+    )
+    stages = []
+    for stage_monsters in stage_lists:
+        for monster in stage_monsters:
+            state = states[monster.pk]
+            if state == progression.UNLOCKED and monster.stage.order > PLAYABLE_STAGE_LIMIT:
+                state = progression.LOCKED
+            monster.state = state
+            monster.unlocked = state == progression.UNLOCKED
+            monster.defeated = state == progression.DEFEATED
+        stages.append(
+            {
+                "stage": stage_monsters[0].stage,
+                "monsters": stage_monsters,
+                "open": any(m.state != progression.LOCKED for m in stage_monsters),
+            }
+        )
+    return monsters, stages
+
 
 def unlocked(player, monster):
-    # This slice supports Stage 1 only; later stages arrive with S3-1.
-    if monster.stage.order != 1:
-        return False
-    previous = (
-        Monster.objects.filter(stage=monster.stage, order__lt=monster.order)
-        .order_by("-order")
-        .first()
-    )
-    return (
-        previous is None
-        or Battle.objects.filter(player=player, monster=previous, status=Battle.Status.WON).exists()
-    )
+    """True only if the monster can be battled now (not locked, not defeated)."""
+    monsters, _ = progress_for(player)
+    return any(m.pk == monster.pk and m.unlocked for m in monsters)
 
 
 def _next_question(battle):
